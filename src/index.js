@@ -1,5 +1,3 @@
-require("babel/register");
-
 const _ = require('lodash');
 const EventProcessor = require('./eventProcessor');
 
@@ -14,6 +12,6 @@ let eventProcessor = new EventProcessor(redisOptions);
 
 let coinbase = new Coinbase();
 
-coinbase.on('message', (data) => {
-  eventProcessor.processMessage(data);
+coinbase.on('message', (message) => {
+  eventProcessor.processEvent(message);
 });

@@ -1,12 +1,16 @@
-import EventEmitter from 'EventEmitter';
+import EventEmitter from 'events';
 import Redis from 'redis';
 
 export default class EventProcessor extends EventEmitter {
   constructor(redisOptions) {
-    this.redis = Redis.createConnection(redisOptions);
+    super();
+    this.redis = Redis.createClient(redisOptions);
   }
 
-  processEvent(data) {
-    this.redis.set(data.Symbol, data);
+  processEvent(message) {
+    if (message.eventType === 'match') {
+      console.log(message);
+    }
+    this.redis.set(message.data.Symbol, JSON.stringify(message.data));
   }
 }

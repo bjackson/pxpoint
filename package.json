@@ -12,7 +12,7 @@
   "devDependencies": {},
   "scripts": {
     "test": "mocha test",
-    "start": "node src/index.js"
+    "start": "babel-node src/index.js"
   },
   "author": "Brett Jackson <brett@brettjackson.org>",
   "license": "BSD-3-Clause"
