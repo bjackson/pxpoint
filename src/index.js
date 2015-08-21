@@ -8,10 +8,23 @@ let redisOptions = {
   port: 6379
 };
 
+let coinbaseOptions = {
+  products: ['BTC-USD', 'BTC-EUR', 'BTC-GBP']
+};
+
+let epOptions = {
+  orderBookSize: 10
+};
+
 let eventProcessor = new EventProcessor(redisOptions);
 
-let coinbase = new Coinbase();
+let coinbase = new Coinbase(coinbaseOptions);
 
-coinbase.on('message', (message) => {
-  eventProcessor.processEvent(message);
+coinbase.connect();
+coinbase.createOrderBook();
+
+coinbase.on('message', message => {
+  eventProcessor.processIncrementalUpdate(message);
 });
+
+coinbase.on('error', err => console.log(err));
