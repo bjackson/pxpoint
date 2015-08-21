@@ -28,3 +28,5 @@ coinbase.on('message', message => {
 });
 
 coinbase.on('error', err => console.log(err));
+
+// eventProcessor.on('orderBook', book => console.log(book));
