@@ -8,12 +8,14 @@
     "babel": "^5.8.21",
     "lodash": "^3.10.1",
     "pxpoint-coinbase": "^0.0.0",
-    "redis": "^0.12.1"
+    "redis": "^0.12.1",
+    "ws": "^0.8.0"
   },
   "devDependencies": {},
   "scripts": {
     "test": "mocha test",
-    "start": "babel-node src/index.js"
+    "start": "babel-node src/index.js",
+    "debug": "babel-node debug src/index.js"
   },
   "author": "Brett Jackson <brett@brettjackson.org>",
   "license": "BSD-3-Clause"

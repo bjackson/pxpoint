@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const EventProcessor = require('./eventProcessor');
+import * as RequestProcessor from './requestProcessor';
 
 let Coinbase = require('pxpoint-coinbase');
 
@@ -24,6 +25,7 @@ coinbase.connect();
 coinbase.createOrderBook();
 
 coinbase.on('message', message => {
+  // console.log(message);
   eventProcessor.processIncrementalUpdate(message);
 });
 
