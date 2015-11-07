@@ -29,10 +29,10 @@ export default class EventProcessor extends EventEmitter {
     }
   }
 
-  processOrderBookUpdate(symbol) {
+  processOrderBookUpdate(symbol, numberOfEntries) {
     async.parallel({
       bid: callback => {
-        this.redis.zrevrange(`${symbol}-Ranked-Bid`, 0, 30, (err, orders) => {
+        this.redis.zrevrange(`${symbol}-Ranked-Bid`, 0, numberOfEntries, (err, orders) => {
           orders = _(orders).map((order) => {
             order = JSON.parse(order);
             return {
@@ -52,7 +52,7 @@ export default class EventProcessor extends EventEmitter {
       },
 
       ask: callback => {
-        this.redis.zrange(`${symbol}-Ranked-Offer`, 0, 30, (err, orders) => {
+        this.redis.zrange(`${symbol}-Ranked-Offer`, 0, numberOfEntries, (err, orders) => {
           orders = _(orders).map((order) => {
             order = JSON.parse(order);
             return {

@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const EventProcessor = require('./eventProcessor');
-import * as RequestProcessor from './requestProcessor';
+const RequestProcessor = require('./requestProcessor');
+const OrderBook = require('./orderBook');
 
 let Coinbase = require('pxpoint-coinbase');
 
@@ -19,6 +20,10 @@ let epOptions = {
 
 let eventProcessor = new EventProcessor(redisOptions);
 
+let orderBook = new OrderBook(redisOptions);
+
+let requestProcessor = new RequestProcessor(orderBook);
+
 let coinbase = new Coinbase(coinbaseOptions);
 
 coinbase.connect();
@@ -30,5 +35,6 @@ coinbase.on('message', message => {
 });
 
 coinbase.on('error', err => console.log(err));
+
 
 // eventProcessor.on('orderBook', book => console.log(book));

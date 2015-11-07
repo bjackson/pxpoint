@@ -3,30 +3,42 @@ const _ = require('lodash');
 import * as ws from 'ws';
 const wsServer = ws.Server;
 
-let server = new wsServer({
-  port: 11789
-});
+export default class RequestProcessor {
+  constructor(orderBook) {
+    this.orderBook = orderBook;
 
-function handleRequest(socket, message) {
-  if (message.requestType == 'GetOrderBook') {
-    let symbol = message.body.Symbol;
-    
+    this.server = new wsServer({
+      port: 11789
+    });
+
+    this.server.on('connection', socket => {
+      console.log('Client connected.');
+
+      socket.on('message', message => {
+        this.handleMessage(socket, message);
+      });
+    });
+  }
+
+  handleRequest(socket, message) {
+    if (message.requestType == 'GetOrderBook') {
+      let symbol = message.Symbol;
+      this.orderBook.getOrderBookForSymbol(symbol)
+        .then(book => {
+          socket.send(JSON.stringify(book));
+        })
+        .catch(err => {
+          console.log(err);
+          socket.send(err);
+        });
+    }
+  }
+
+  handleMessage(socket, message) {
+    message = JSON.parse(message);
+
+    if (message.eventType == 'request') {
+      this.handleRequest(socket, message);
+    }
   }
 }
-
-function handleMessage(socket, message) {
-  message = JSON.parse(message);
-
-  if (message.eventType == 'request') {
-    handleRequest(socket, message);
-  }
-}
-
-server.on('connection', socket => {
-  console.log('Client connected.');
-
-  socket.on('message', message => {
-    handleMessage(socket, message);
-  });
-
-});
