@@ -27,12 +27,15 @@ export default class RequestProcessor extends EventEmitter {
         this.handleMessage(socket, message);
       });
 
-      socket.on('close', () => {
-        delete this.sockets[socket];
-      });
+      socket.on('close', () => this.onSocketDisconnect(socket));
     });
 
     this.on('update', update => this.processUpdate(update));
+  }
+
+  onSocketDisconnect(socket) {
+    console.log(`Client disconnected. UUID: ${socket.id}`);
+    delete this.sockets[socket];
   }
 
   handleRequest(socket, message) {
@@ -99,6 +102,14 @@ export default class RequestProcessor extends EventEmitter {
   }
 
   sendToSocket(socket, message) {
-    socket.send(JSON.stringify(message));
+    try {
+      socket.send(JSON.stringify(message));
+    } catch (e) {
+      if (e.name === 'not opened') {
+        this.onSocketDisconnect(socket);
+      }
+    } finally {
+
+    }
   }
 }
