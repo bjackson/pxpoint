@@ -79,7 +79,6 @@ export default class EventProcessor extends EventEmitter {
       if (err) {
         console.log(err);
       }
-      console.log(book);
       this.redis.set(`${symbol}:${market}:OrderBook`, JSON.stringify(book));
       this.emit('orderBook', {Symbol: symbol, data: book});
     });
