@@ -22,7 +22,7 @@ let eventProcessor = new EventProcessor(redisOptions);
 
 let orderBook = new OrderBook(redisOptions);
 
-let requestProcessor = new RequestProcessor(orderBook);
+let requestProcessor = new RequestProcessor(orderBook, redisOptions);
 
 let coinbase = new Coinbase(coinbaseOptions);
 

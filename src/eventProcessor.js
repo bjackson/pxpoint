@@ -13,16 +13,16 @@ export default class EventProcessor extends EventEmitter {
     if (message.eventType === 'open') {
       let side = message.data.MDEntryType === 0 ? 'Bid' : 'Offer';
       this.redis.multi()
-        .hset(`${message.data.Symbol}-Orders`, message.data.OrderID, JSON.stringify(message.data))
-        .zadd(`${message.data.Symbol}-Ranked-${side}`, message.data.MDEntryPx, JSON.stringify(message.data))
+        .hset(`${message.data.Symbol}:Orders`, message.data.OrderID, JSON.stringify(message.data))
+        .zadd(`${message.data.Symbol}:Ranked-${side}`, message.data.MDEntryPx, JSON.stringify(message.data))
         .exec(() => this.processOrderBookUpdate(message.data.Symbol));
     } else if (message.EventType === 'done') {
       let side = message.data.MDEntryType === 0 ? 'Bid' : 'Offer';
-      this.redis.hget(`${message.data.Symbol}-Orders`, message.data.OrderID, (err, order) => {
+      this.redis.hget(`${message.data.Symbol}:Orders`, message.data.OrderID, (err, order) => {
         if (order) {
           this.redis.multi()
-            .hdel(`${message.data.Symbol}-Orders`, message.data.OrderID)
-            .zrem(`${message.data.Symbol}-Ranked-${side}`, order)
+            .hdel(`${message.data.Symbol}:Orders`, message.data.OrderID)
+            .zrem(`${message.data.Symbol}:Ranked-${side}`, order)
             .exec(() => this.processOrderBookUpdate(message.data.Symbol));
         }
       });
@@ -32,7 +32,7 @@ export default class EventProcessor extends EventEmitter {
   processOrderBookUpdate(symbol, numberOfEntries) {
     async.parallel({
       bid: callback => {
-        this.redis.zrevrange(`${symbol}-Ranked-Bid`, 0, numberOfEntries, (err, orders) => {
+        this.redis.zrevrange(`${symbol}:Ranked-Bid`, 0, numberOfEntries, (err, orders) => {
           orders = _(orders).map((order) => {
             order = JSON.parse(order);
             return {
@@ -52,7 +52,7 @@ export default class EventProcessor extends EventEmitter {
       },
 
       ask: callback => {
-        this.redis.zrange(`${symbol}-Ranked-Offer`, 0, numberOfEntries, (err, orders) => {
+        this.redis.zrange(`${symbol}:Ranked-Offer`, 0, numberOfEntries, (err, orders) => {
           orders = _(orders).map((order) => {
             order = JSON.parse(order);
             return {
@@ -71,7 +71,7 @@ export default class EventProcessor extends EventEmitter {
         });
       }
     }, (err, book) => {
-      this.redis.set(`${symbol}-OrderBook`, JSON.stringify(book));
+      this.redis.set(`${symbol}:OrderBook`, JSON.stringify(book));
       this.emit('orderBook', {Symbol: symbol, data: book});
     });
   }

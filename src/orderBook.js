@@ -12,7 +12,7 @@ export default class OrderBook {
     return new Promise((resolve, reject) => {
       async.parallel({
         bid: callback => {
-          this.redis.zrevrange(`${symbol}-Ranked-Bid`, 0, 30, (err, orders) => {
+          this.redis.zrevrange(`${symbol}:Ranked-Bid`, 0, 30, (err, orders) => {
             orders = _(orders).map((order) => {
               order = JSON.parse(order);
               return {
@@ -32,7 +32,7 @@ export default class OrderBook {
         },
 
         ask: callback => {
-          this.redis.zrange(`${symbol}-Ranked-Offer`, 0, 30, (err, orders) => {
+          this.redis.zrange(`${symbol}:Ranked-Offer`, 0, 30, (err, orders) => {
             orders = _(orders).map((order) => {
               order = JSON.parse(order);
               return {
