@@ -16,7 +16,7 @@ export default class EventProcessor extends EventEmitter {
       this.redis.multi()
         .hset(`${message.data.Symbol}:${market}:Orders`, message.data.OrderID, JSON.stringify(message.data))
         .zadd(`${message.data.Symbol}:${market}:Ranked-${side}`, message.data.MDEntryPx, JSON.stringify(message.data))
-        .exec(() => this.processOrderBookUpdate(message));
+        .exec(() => this.processOrderBookUpdate(message, 30));
     } else if (message.EventType === 'done') {
       let side = message.data.MDEntryType === 0 ? 'Bid' : 'Offer';
       this.redis.hget(`${message.data.Symbol}:${market}:Orders`, message.data.OrderID, (err, order) => {
@@ -24,7 +24,7 @@ export default class EventProcessor extends EventEmitter {
           this.redis.multi()
             .hdel(`${message.data.Symbol}:${market}:Orders`, message.data.OrderID)
             .zrem(`${message.data.Symbol}:${market}:Ranked-${side}`, order)
-            .exec(() => this.processOrderBookUpdate(message));
+            .exec(() => this.processOrderBookUpdate(message, 30));
         }
       });
     }
@@ -48,14 +48,17 @@ export default class EventProcessor extends EventEmitter {
             return _(orders).map(order => order.MDEntrySize)
                     .sum();
           })
-
           .value();
+
           callback(null, orders);
         });
       },
 
       ask: callback => {
         this.redis.zrange(`${symbol}:${market}:Ranked-Offer`, 0, numberOfEntries, (err, orders) => {
+          if (err) {
+            console.log(err);
+          }
           orders = _(orders).map((order) => {
             order = JSON.parse(order);
             return {
@@ -68,12 +71,15 @@ export default class EventProcessor extends EventEmitter {
             return _(orders).map(order => order.MDEntrySize)
                     .sum();
           })
-
           .value();
           callback(null, orders);
         });
       }
     }, (err, book) => {
+      if (err) {
+        console.log(err);
+      }
+      console.log(book);
       this.redis.set(`${symbol}:${market}:OrderBook`, JSON.stringify(book));
       this.emit('orderBook', {Symbol: symbol, data: book});
     });

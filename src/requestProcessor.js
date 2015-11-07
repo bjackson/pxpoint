@@ -40,9 +40,10 @@ export default class RequestProcessor extends EventEmitter {
 
   handleRequest(socket, message) {
     let symbol = message.Symbol;
+    let market = message.MDMkt;
 
     if (message.requestType == 'GetOrderBook') {
-      this.getOrderBookForSymbol(socket, symbol);
+      this.getOrderBookForSymbol(socket, symbol, market);
       return;
     }
 
@@ -63,8 +64,8 @@ export default class RequestProcessor extends EventEmitter {
     }
   }
 
-  getOrderBookForSymbol(socket, symbol) {
-    this.orderBook.getOrderBookForSymbol(symbol)
+  getOrderBookForSymbol(socket, symbol, market) {
+    this.orderBook.getOrderBookForSymbol(symbol, market)
       .then(book => {
         this.sendToSocket(socket, book);
       })
