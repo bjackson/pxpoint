@@ -8,11 +8,11 @@ export default class OrderBook {
     this.redis = Redis.createClient(redisOptions);
   }
 
-  getOrderBookForSymbol(symbol) {
+  getOrderBookForSymbol(symbol, market) {
     return new Promise((resolve, reject) => {
       async.parallel({
         bid: callback => {
-          this.redis.zrevrange(`${symbol}:Ranked-Bid`, 0, 30, (err, orders) => {
+          this.redis.zrevrange(`${symbol}:${market}:Ranked-Bid`, 0, 30, (err, orders) => {
             orders = _(orders).map((order) => {
               order = JSON.parse(order);
               return {
@@ -32,7 +32,7 @@ export default class OrderBook {
         },
 
         ask: callback => {
-          this.redis.zrange(`${symbol}:Ranked-Offer`, 0, 30, (err, orders) => {
+          this.redis.zrange(`${symbol}:${market}:Ranked-Offer`, 0, 30, (err, orders) => {
             orders = _(orders).map((order) => {
               order = JSON.parse(order);
               return {
