@@ -2,11 +2,13 @@ const _ = require('lodash');
 import * as ws from 'ws';
 import Redis from 'redis';
 import Uuid from 'uuid';
+import EventEmitter from 'events';
 
 const wsServer = ws.Server;
 
-export default class RequestProcessor {
+export default class RequestProcessor extends EventEmitter {
   constructor(orderBook, redisOptions) {
+    super();
     this.orderBook = orderBook;
     this.redis = Redis.createClient(redisOptions);
 
@@ -14,14 +16,23 @@ export default class RequestProcessor {
       port: 11789
     });
 
+    this.sockets = {};
+
     this.server.on('connection', socket => {
       socket.id = Uuid.v4();
+      this.sockets[socket.id] = socket;
       console.log(`Client connected. UUID: ${socket.id}`);
 
       socket.on('message', message => {
         this.handleMessage(socket, message);
       });
+
+      socket.on('close', () => {
+        delete this.sockets[socket];
+      });
     });
+
+    this.on('update', update => this.processUpdate(update));
   }
 
   handleRequest(socket, message) {
@@ -34,6 +45,10 @@ export default class RequestProcessor {
 
     if (message.requestType == 'SubscribeToSymbol') {
       this.subscribeToSymbol(socket, symbol);
+    }
+
+    if (message.requestType == 'UnsubscribeToSymbol') {
+      this.unsubscribeToSymbol(socket, symbol);
     }
   }
 
@@ -48,15 +63,42 @@ export default class RequestProcessor {
   getOrderBookForSymbol(socket, symbol) {
     this.orderBook.getOrderBookForSymbol(symbol)
       .then(book => {
-        socket.send(JSON.stringify(book));
+        this.sendToSocket(socket, book);
       })
       .catch(err => {
         console.log(err);
-        socket.send(err);
+        this.sendToSocket(socket, err);
       });
   }
 
   subscribeToSymbol(socket, symbol) {
-    this.redis.hset(`${symbol}:Subscribers`, socket.id, 'yes');
+    this.redis.hset(`${symbol}:Subscribers`, socket.id, JSON.stringify({type: 'all'}));
+  }
+
+  unsubscribeToSymbol(socket, symbol) {
+    this.redis.hdel(`${symbol}:Subscribers`, socket.id);
+  }
+
+  processUpdate(update) {
+    if (update.socketID) {
+      this.sendToSocket(this.sockets[socketID], update);
+    } else {
+      let symbol = update.body.data.Symbol;
+      this.redis.hkeys(`${symbol}:Subscribers`, (err, subscriberIds) => {
+        let socketsToUpdate =
+          _(subscriberIds)
+          .map(subId => this.sockets[subId])
+          .value();
+        socketsToUpdate.forEach(socket => {
+          if (socket) {
+            this.sendToSocket(socket, update);
+          }
+        });
+      });
+    }
+  }
+
+  sendToSocket(socket, message) {
+    socket.send(JSON.stringify(message));
   }
 }

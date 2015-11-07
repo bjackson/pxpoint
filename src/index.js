@@ -32,6 +32,8 @@ coinbase.createOrderBook();
 coinbase.on('message', message => {
   // console.log(message);
   eventProcessor.processIncrementalUpdate(message);
+  let update = {body: message};
+  requestProcessor.processUpdate(update);
 });
 
 coinbase.on('error', err => console.log(err));
