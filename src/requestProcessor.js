@@ -1,7 +1,7 @@
 const _ = require('lodash');
 import * as ws from 'ws';
 import Redis from 'redis';
-import Uuid from 'uuid';
+import Uuid from 'node-uuid';
 import EventEmitter from 'events';
 
 const wsServer = ws.Server;

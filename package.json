@@ -4,18 +4,24 @@
   "description": "Market data aggregrator, transformer, and transmission system.",
   "main": "src/index.js",
   "dependencies": {
-    "async": "^1.4.2",
-    "babel": "^5.8.21",
-    "lodash": "^3.10.1",
+    "async": "^2.0.0-rc.5",
+    "babel": "^5.8.38",
+    "lodash": "^4.12.0",
+    "node-uuid": "^1.4.7",
     "pxpoint-coinbase": "^0.0.0",
     "redis": "^0.12.1",
-    "ws": "^0.8.0"
+    "ws": "^1.1.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "babel": "^5.8.38",
+    "babel-cli": "^6.9.0",
+    "babel-preset-es2015": "^6.9.0",
+    "babel-register": "^6.9.0"
+  },
   "scripts": {
     "test": "mocha test",
-    "start": "babel-node src/index.js",
-    "debug": "babel-node debug src/index.js"
+    "start": "node entrypoint.js",
+    "debug": "babel-node --presets es2015 --debug -- src/index.js"
   },
   "author": "Brett Jackson <brett@brettjackson.org>",
   "license": "BSD-3-Clause"

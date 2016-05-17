@@ -1,9 +1,12 @@
 const _ = require('lodash');
-const EventProcessor = require('./eventProcessor');
-const RequestProcessor = require('./requestProcessor');
-const OrderBook = require('./orderBook');
+import EventProcessor from './eventProcessor';
+import RequestProcessor from './requestProcessor';
+import OrderBook from './orderBook';
+import * as config from './config';
+// import * as OKCoin from 'pxpoint-okcoin';
 
-let Coinbase = require('pxpoint-coinbase');
+// let Coinbase = require('pxpoint-coinbase');
+import Coinbase from 'pxpoint-coinbase';
 
 let redisOptions = {
   host: 'localhost',
@@ -18,6 +21,7 @@ let epOptions = {
   orderBookSize: 10
 };
 
+
 let eventProcessor = new EventProcessor(redisOptions);
 
 let orderBook = new OrderBook(redisOptions);
@@ -29,6 +33,20 @@ let coinbase = new Coinbase(coinbaseOptions);
 coinbase.connect();
 coinbase.createOrderBook();
 
+// let okcoin = new OKCoin(config.keys.coinbase);
+
+// okcoin.on('message', message => {
+//   // console.log(message);
+//   eventProcessor.processIncrementalUpdate(message);
+//   let update = {body: message};
+//   requestProcessor.processUpdate(update);
+// });
+
+// okcoin.on('new-trade', trade => console.log(trade));
+// okcoin.on('new-book', book => console.log(book));
+
+// okcoin.on('error', err => console.log(err));
+
 coinbase.on('message', message => {
   // console.log(message);
   eventProcessor.processIncrementalUpdate(message);
@@ -39,4 +57,4 @@ coinbase.on('message', message => {
 coinbase.on('error', err => console.log(err));
 
 
-// eventProcessor.on('orderBook', book => console.log(book));
+eventProcessor.on('orderBook', book => console.log(book));
